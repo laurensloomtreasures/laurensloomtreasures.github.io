@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Grid Painter</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #2E2E2E;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #palette-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+    .color-swatch {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      border: 1px solid white;
+    }
+    #selected-color-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    #selected-color-display {
+      width: 30px;
+      height: 30px;
+      border: 1px solid white;
+    }
+    #grid-container {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-auto-rows: 40px;
+      gap: 2px;
+      margin-top: 10px;
+    }
+    .grid-cell {
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border: 1px solid #333;
+      cursor: pointer;
+    }
+    #button-container {
+      margin-top: 20px;
+    }
+    button {
+      background-color: #1f1f1f;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Grid Painter</h1>
+
+  <div id="palette-container"></div>
+
+  <div id="selected-color-container">
+    <span>Selected Color:</span>
+    <div id="selected-color-display"></div>
+  </div>
+
+  <div id="button-container">
+    <button onclick="addRow()">Add Row</button>
+    <button onclick="addColumn()">Add Column</button>
+    <button onclick="removeRow()">Remove Row</button>
+    <button onclick="removeColumn()">Remove Column</button>
+    <button onclick="downloadGridAsCSV()">Download as CSV</button>
+  </div>
+
+  <div id="grid-container"></div>
+
+  <script>
+    const paletteColors = [
+        "#3A2123", "#6E0610", "#672C2A", "#97162B", "#C20417", "#E53B2F", "#D2232C",
+        "#FF6820", "#F28F68", "#FA9908", "#FAAD01", "#FCCA03", "#F8EE15", "#F8F9AD", "#FEEB9B"
+    ];
+    let selectedColor = "#ffffff";
+
+    function createPalette() {
+      const paletteContainer = document.getElementById("palette-container");
+      paletteColors.forEach(color => {
+        const swatch = document.createElement("div");
+        swatch.classList.add("color-swatch");
+        swatch.style.backgroundColor = color;
+        swatch.addEventListener("click", () => selectColor(color));
+        paletteContainer.appendChild(swatch);
+      });
+      // Eraser swatch
+      const eraserSwatch = document.createElement("div");
+      eraserSwatch.classList.add("color-swatch");
+      eraserSwatch.style.backgroundColor = "white";
+      eraserSwatch.innerText = "Erase";
+      eraserSwatch.style.color = "black";
+      eraserSwatch.style.fontSize = "10px";
+      eraserSwatch.style.textAlign = "center";
+      eraserSwatch.addEventListener("click", () => selectColor("white"));
+      paletteContainer.appendChild(eraserSwatch);
+    }
+
+    function selectColor(color) {
+      selectedColor = color;
+      document.getElementById("selected-color-display").style.backgroundColor = selectedColor;
+    }
+
+    function createGrid(rows = 3, columns = 10) {
+      const gridContainer = document.getElementById("grid-container");
+      gridContainer.innerHTML = "";
+      gridContainer.style.gridTemplateColumns = `repeat(${columns}, 40px)`;
+      for (let i = 0; i < rows * columns; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("grid-cell");
+        cell.addEventListener("click", () => paintCell(cell));
+        gridContainer.appendChild(cell);
+      }
+    }
+
+    function paintCell(cell) {
+      cell.style.backgroundColor = selectedColor;
+    }
+
+    function addRow() {
+      const gridContainer = document.getElementById("grid-container");
+      const columnCount = parseInt(gridContainer.style.gridTemplateColumns.match(/\d+/)[0]);
+      if (gridContainer.childElementCount / columnCount < 30) {
+        for (let i = 0; i < columnCount; i++) {
+          const cell = document.createElement("div");
+          cell.classList.add("grid-cell");
+          cell.addEventListener("click", () => paintCell(cell));
+          gridContainer.appendChild(cell);
+        }
+      }
+    }
+
+    function addColumn() {
+      const gridContainer = document.getElementById("grid-container");
+      const columnCount = parseInt(gridContainer.style.gridTemplateColumns.match(/\d+/)[0]);
+      const rowCount = gridContainer.childElementCount / columnCount;
+      if (columnCount < 30) {
+        gridContainer.style.gridTemplateColumns = `repeat(${columnCount + 1}, 40px)`;
+        for (let i = 0; i < rowCount; i++) {
+          const cell = document.createElement("div");
+          cell.classList.add("grid-cell");
+          cell.addEventListener("click", () => paintCell(cell));
+          gridContainer.appendChild(cell);
+        }
+      }
+    }
+
+    function removeRow() {
+      const gridContainer = document.getElementById("grid-container");
+      const columnCount = parseInt(gridContainer.style.gridTemplateColumns.match(/\d+/)[0]);
+      if (gridContainer.childElementCount >= columnCount * 4) {
+        for (let i = 0; i < columnCount; i++) {
+          gridContainer.removeChild(gridContainer.lastChild);
+        }
+      }
+    }
+
+    function removeColumn() {
+      const gridContainer = document.getElementById("grid-container");
+      const columnCount = parseInt(gridContainer.style.gridTemplateColumns.match(/\d+/)[0]);
+      const rowCount = gridContainer.childElementCount / columnCount;
+      if (columnCount > 3) {
+        gridContainer.style.gridTemplateColumns = `repeat(${columnCount - 1}, 40px)`;
+        for (let i = rowCount - 1; i >= 0; i--) {
+          const cellIndex = i * columnCount + (columnCount - 1);
+          gridContainer.removeChild(gridContainer.childNodes[cellIndex]);
+        }
+      }
+    }
+
+    function downloadGridAsCSV() {
+      const gridContainer = document.getElementById("grid-container");
+      const columnCount = parseInt(gridContainer.style.gridTemplateColumns.match(/\d+/)[0]);
+      const rowCount = gridContainer.childElementCount / columnCount;
+      let csvContent = "data:text/csv;charset=utf-8,";
+
+      for (let row = 0; row < rowCount; row++) {
+        const rowData = [];
+        for (let col = 0; col < columnCount; col++) {
+          const cellIndex = row * columnCount + col;
+          const cell = gridContainer.childNodes[cellIndex];
+          rowData.push(cell.style.backgroundColor || "white");
+        }
+        csvContent += rowData.join(",") + "\n";
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "grid_colors.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Initialize the grid and palette
+    createPalette();
+    createGrid();
+  </script>
+</body>
+</html>
