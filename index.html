@@ -93,18 +93,177 @@
 
   <script>
     const paletteColors = [
-        "#3A2123", "#6E0610", "#672C2A", "#97162B", "#C20417", "#E53B2F", "#D2232C",
-        "#FF6820", "#F28F68", "#FA9908", "#FAAD01", "#FCCA03", "#F8EE15", "#F8F9AD", "#FEEB9B"
+        "#3A2123",
+        "#6E0610",
+        "#672C2A",
+        "#97162B",
+        "#C20417",
+        "#E53B2F",
+        "#D2232C",
+        "#FF6820",
+        "#F28F68",
+        "#FA9908",
+        "#FAAD01",
+        "#FCCA03",
+        "#F8EE15",
+        "#F8F9AD",
+        "#FEEB9B",
+        "#CCCC6A",
+        "#ADC355",
+        "#9BD91E",
+        "#A8E09F",
+        "#C6CA5B",
+        "#538C49",
+        "#0F5F21",
+        "#024D42",
+        "#1D2609",
+        "#444911",
+        "#394227",
+        "#224251",
+        "#2D5A5F",
+        "#65B5BF",
+        "#4598A0",
+        "#1CAAA7",
+        "#05827E",
+        "#459FA3",
+        "#379799",
+        "#0AB6D5",
+        "#89E9E4",
+        "#64B6DC",
+        "#BAE6F0",
+        "#2192D8",
+        "#7ADBFE",
+        "#2D8ACB",
+        "#B6D1FC",
+        "#607ACC",
+        "#2F4B7F",
+        "#135192",
+        "#276DB5",
+        "#4252D9",
+        "#046CDF",
+        "#1A0C81",
+        "#B598D9",
+        "#9D75A7",
+        "#836B9C",
+        "#7F3651",
+        "#7C659C",
+        "#5B66A9",
+        "#7572DB",
+        "#72406E",
+        "#77296B",
+        "#9F417C",
+        "#BF2E8D",
+        "#4E364E",
+        "#785E70",
+        "#936570",
+        "#512A3D",
+        "#B08996",
+        "#CAA0B5",
+        "#DBBDBE",
+        "#DA4E9E",
+        "#D6A3C2",
+        "#946A8A",
+        "#472F37",
+        "#D0607D",
+        "#E777A1",
+        "#DC9B89",
+        "#FB95AF",
+        "#FB8F8A",
+        "#E5AD9E",
+        "#F253A6",
+        "#CB384C",
+        "#D69584",
+        "#B67C64",
+        "#EBBEAD",
+        "#D6BCB9",
+        "#F1E0C1",
+        "#F6F1E3",
+        "#6D5242",
+        "#BB8F79",
+        "#B06C50",
+        "#B57B36",
+        "#AB6E08",
+        "#8D470A",
+        "#573B3B",
+        "#28231C",
+        "#4C4332",
+        "#864F43",
+        "#A36C51",
+        "#CA9C4A",
+        "#D8A048",
+        "#564F49",
+        "#6C819A",
+        "#64576B",
+        "#132D44",
+        "#141D21",
+        "#3E383B",
+        "#555971",
+        "#66635E",
+        "#C5C9B8",
+        "#9692A1",
+        "#A4A9A2",
+        "#CECECE",
+        "#918F8B",
+        "#EFE8DD",
+        "#FFFFFF",
+        "#F4EFE3",
+        "#FFFFFF",
+        "#DAD8D9",
+        "#FAFBFF",
+        "#FFFFFF",
+        "#ffffff"
     ];
+    
+    
     let selectedColor = "#ffffff";
+
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex) {
+      // Remove the # if present
+      hex = hex.replace(/^#/, '');
+      
+      // Parse r, g, b values
+      const bigint = parseInt(hex, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Helper function to normalize RGB string
+    function normalizeRgb(color) {
+      if (!color) return 'rgb(255, 255, 255)'; // Default to white
+      if (color.startsWith('#')) {
+        return hexToRgb(color);
+      }
+      if (color === 'white') {
+        return 'rgb(255, 255, 255)';
+      }
+      return color;
+    }
+
+    // Helper function to get color index
+    function getColorIndex(color) {
+      const normalizedColor = normalizeRgb(color);
+      
+      // Special case for white
+      if (normalizedColor === 'rgb(255, 255, 255)') {
+        return -1;
+      }
+
+      // Convert all palette colors to RGB and find matching index
+      return paletteColors.findIndex(c => normalizeRgb(c) === normalizedColor) + 1;
+    }
 
     function createPalette() {
       const paletteContainer = document.getElementById("palette-container");
-      paletteColors.forEach(color => {
+      paletteColors.forEach((color, index) => {
         const swatch = document.createElement("div");
         swatch.classList.add("color-swatch");
         swatch.style.backgroundColor = color;
         swatch.addEventListener("click", () => selectColor(color));
+        swatch.title = `Color ${index}`;
         paletteContainer.appendChild(swatch);
       });
       // Eraser swatch
@@ -116,6 +275,7 @@
       eraserSwatch.style.fontSize = "10px";
       eraserSwatch.style.textAlign = "center";
       eraserSwatch.addEventListener("click", () => selectColor("white"));
+      eraserSwatch.title = "Eraser (-1)";
       paletteContainer.appendChild(eraserSwatch);
     }
 
@@ -202,7 +362,8 @@
         for (let col = 0; col < columnCount; col++) {
           const cellIndex = row * columnCount + col;
           const cell = gridContainer.childNodes[cellIndex];
-          rowData.push(cell.style.backgroundColor || "white");
+          const colorIndex = getColorIndex(cell.style.backgroundColor || "white");
+          rowData.push(colorIndex);
         }
         csvContent += rowData.join(",") + "\n";
       }
